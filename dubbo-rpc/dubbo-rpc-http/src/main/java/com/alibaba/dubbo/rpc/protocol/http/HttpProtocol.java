@@ -42,11 +42,14 @@ import com.alibaba.dubbo.rpc.protocol.AbstractProxyProtocol;
 
 /**
  * HttpProtocol
+ *
+ * rpc之http协议，在dubbo:protocol可以配置name为http。
  * 
  * @author william.liangf
  */
 public class HttpProtocol extends AbstractProxyProtocol {
 
+    //默认端口80
     public static final int              DEFAULT_PORT = 80;
 
     private final Map<String, HttpServer> serverMap = new ConcurrentHashMap<String, HttpServer>();
@@ -87,18 +90,20 @@ public class HttpProtocol extends AbstractProxyProtocol {
         
     }
 
+    //暴露远程服务
     protected <T> Runnable doExport(final T impl, Class<T> type, URL url) throws RpcException {
         String addr = url.getIp() + ":" + url.getPort();
         HttpServer server = serverMap.get(addr);
         if (server == null) {
-            server = httpBinder.bind(url, new InternalHandler());
+            server = httpBinder.bind(url, new InternalHandler());//绑定url和对应handler
             serverMap.put(addr, server);
         }
+        // 使用spring 的HttpInvokerServiceExporter来暴露服务
         final HttpInvokerServiceExporter httpServiceExporter = new HttpInvokerServiceExporter();
         httpServiceExporter.setServiceInterface(type);
         httpServiceExporter.setService(impl);
         try {
-            httpServiceExporter.afterPropertiesSet();
+            httpServiceExporter.afterPropertiesSet();// 使用spring 方法 完成暴露接口给外部访问
         } catch (Exception e) {
             throw new RpcException(e.getMessage(), e);
         }
@@ -111,31 +116,33 @@ public class HttpProtocol extends AbstractProxyProtocol {
         };
     }
 
+    //调用服务
     @SuppressWarnings("unchecked")
     protected <T> T doRefer(final Class<T> serviceType, final URL url) throws RpcException {
         final HttpInvokerProxyFactoryBean httpProxyFactoryBean = new HttpInvokerProxyFactoryBean();
-        httpProxyFactoryBean.setServiceUrl(url.toIdentityString());
+        httpProxyFactoryBean.setServiceUrl(url.toIdentityString());//构建一个包含协议user等完整的url地址
         httpProxyFactoryBean.setServiceInterface(serviceType);
         String client = url.getParameter(Constants.CLIENT_KEY);
         if (client == null || client.length() == 0 || "simple".equals(client)) {
-        	SimpleHttpInvokerRequestExecutor httpInvokerRequestExecutor = new SimpleHttpInvokerRequestExecutor() {
+        	// 使用spring 的SimpleHttpInvokerRequestExecutor完成http调用
+            SimpleHttpInvokerRequestExecutor httpInvokerRequestExecutor = new SimpleHttpInvokerRequestExecutor() {
 				protected void prepareConnection(HttpURLConnection con,
 						int contentLength) throws IOException {
 					super.prepareConnection(con, contentLength);
-					con.setReadTimeout(url.getParameter(Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT));
-					con.setConnectTimeout(url.getParameter(Constants.CONNECT_TIMEOUT_KEY, Constants.DEFAULT_CONNECT_TIMEOUT));
+					con.setReadTimeout(url.getParameter(Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT));// 设置读超时时间
+					con.setConnectTimeout(url.getParameter(Constants.CONNECT_TIMEOUT_KEY, Constants.DEFAULT_CONNECT_TIMEOUT));// 设置连接超时时间
 				}
         	};
         	httpProxyFactoryBean.setHttpInvokerRequestExecutor(httpInvokerRequestExecutor);
         } else if ("commons".equals(client)) {
         	CommonsHttpInvokerRequestExecutor httpInvokerRequestExecutor = new CommonsHttpInvokerRequestExecutor();
         	httpInvokerRequestExecutor.setReadTimeout(url.getParameter(Constants.CONNECT_TIMEOUT_KEY, Constants.DEFAULT_CONNECT_TIMEOUT));
-        	httpProxyFactoryBean.setHttpInvokerRequestExecutor(httpInvokerRequestExecutor);
+        	httpProxyFactoryBean.setHttpInvokerRequestExecutor(httpInvokerRequestExecutor);// 获取连接
         } else if (client != null && client.length() > 0) {
         	throw new IllegalStateException("Unsupported http protocol client " + client + ", only supported: simple, commons");
         }
-        httpProxyFactoryBean.afterPropertiesSet();
-        return (T) httpProxyFactoryBean.getObject();
+        httpProxyFactoryBean.afterPropertiesSet();// 设置相关的代理对象，根据对应的接口interface名
+        return (T) httpProxyFactoryBean.getObject();//返回该服务代理，完成服务调用
     }
 
     protected int getErrorCode(Throwable e) {
