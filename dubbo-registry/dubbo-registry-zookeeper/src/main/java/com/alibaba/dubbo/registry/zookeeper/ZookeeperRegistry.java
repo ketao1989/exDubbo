@@ -89,7 +89,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
         return zkClient.isConnected();
     }
 
-    public void destroy() {
+    public void destroy() {// 销毁，关闭zk连接等资源
         super.destroy();
         try {
             zkClient.close();
@@ -100,13 +100,13 @@ public class ZookeeperRegistry extends FailbackRegistry {
 
     protected void doRegister(URL url) {
         try {
-        	zkClient.create(toUrlPath(url), url.getParameter(Constants.DYNAMIC_KEY, true));
+        	zkClient.create(toUrlPath(url), url.getParameter(Constants.DYNAMIC_KEY, true));// zk上创建一个path路径节点
         } catch (Throwable e) {
             throw new RpcException("Failed to register " + url + " to zookeeper " + getUrl() + ", cause: " + e.getMessage(), e);
         }
     }
 
-    protected void doUnregister(URL url) {
+    protected void doUnregister(URL url) {//注销，实际上就是删除zk上路径节点
         try {
             zkClient.delete(toUrlPath(url));
         } catch (Throwable e) {
@@ -117,9 +117,9 @@ public class ZookeeperRegistry extends FailbackRegistry {
     protected void doSubscribe(final URL url, final NotifyListener listener) {
         try {
 
-            // interface+path
+            // interface+path   模糊正则*订阅
             if (Constants.ANY_VALUE.equals(url.getServiceInterface())) {
-                String root = toRootPath();
+                String root = toRootPath();//group？
                 ConcurrentMap<NotifyListener, ChildListener> listeners = zkListeners.get(url);
                 if (listeners == null) {
                     // 设置对应的zk监听器map，以url为粒度
@@ -127,7 +127,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
                     listeners = zkListeners.get(url);
                 }
                 ChildListener zkListener = listeners.get(listener);
-                if (zkListener == null) {
+                if (zkListener == null) { //未命中缓存，先注册，然后从缓存换取
                     listeners.putIfAbsent(listener, new ChildListener() {
                         public void childChanged(String parentPath, List<String> currentChilds) {
                             for (String child : currentChilds) {
@@ -135,26 +135,27 @@ public class ZookeeperRegistry extends FailbackRegistry {
                                 if (! anyServices.contains(child)) {
                                     anyServices.add(child);
                                     subscribe(url.setPath(child).addParameters(Constants.INTERFACE_KEY, child, 
-                                            Constants.CHECK_KEY, String.valueOf(false)), listener);
+                                            Constants.CHECK_KEY, String.valueOf(false)), listener);//订阅，key-value
+
                                 }
                             }
                         }
                     });
                     zkListener = listeners.get(listener);
                 }
-                zkClient.create(root, false);
+                zkClient.create(root, false);//创建根路径节点，group名
                 List<String> services = zkClient.addChildListener(root, zkListener);
                 if (services != null && services.size() > 0) {
                     for (String service : services) {
 						service = URL.decode(service);
 						anyServices.add(service);
                         subscribe(url.setPath(service).addParameters(Constants.INTERFACE_KEY, service, 
-                                Constants.CHECK_KEY, String.valueOf(false)), listener);
+                                Constants.CHECK_KEY, String.valueOf(false)), listener);//订阅
                     }
                 }
-            } else {
+            } else {//精确订阅
                 List<URL> urls = new ArrayList<URL>();
-                for (String path : toCategoriesPath(url)) {
+                for (String path : toCategoriesPath(url)) {// 找出url大类，provider，consumer，router，configure之一或多个
                     ConcurrentMap<NotifyListener, ChildListener> listeners = zkListeners.get(url);
                     if (listeners == null) {
                         zkListeners.putIfAbsent(url, new ConcurrentHashMap<NotifyListener, ChildListener>());
@@ -169,7 +170,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
                         });
                         zkListener = listeners.get(listener);
                     }
-                    zkClient.create(path, false);
+                    zkClient.create(path, false);//
                     List<String> children = zkClient.addChildListener(path, zkListener);
                     if (children != null) {
                     	urls.addAll(toUrlsWithEmpty(url, path, children));
@@ -182,7 +183,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
         }
     }
 
-    protected void doUnsubscribe(URL url, NotifyListener listener) {
+    protected void doUnsubscribe(URL url, NotifyListener listener) {// 注销
         ConcurrentMap<NotifyListener, ChildListener> listeners = zkListeners.get(url);
         if (listeners != null) {
             ChildListener zkListener = listeners.get(listener);

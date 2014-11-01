@@ -72,6 +72,8 @@ public class ReferenceConfigCache {
     }
 
     /**
+     * 按照需求构建cache 的key，实现了KeyGenerator接口
+     *
      * Create the key with the <b>Group</b>, <b>Interface</b> and <b>version</b> attribute of {@link ReferenceConfig}.
      * <p>
      * key example: <code>group1/com.alibaba.foo.FooService:1.0.0</code>.
@@ -80,7 +82,7 @@ public class ReferenceConfigCache {
         public String generateKey(ReferenceConfig<?> referenceConfig) {
             String iName = referenceConfig.getInterface();
             if(StringUtils.isBlank(iName)) {
-                Class<?> clazz = referenceConfig.getInterfaceClass();
+                Class<?> clazz = referenceConfig.getInterfaceClass();//消费者需要服务的接口类
                 iName = clazz.getName();
             }
             if(StringUtils.isBlank(iName)) {
@@ -89,11 +91,11 @@ public class ReferenceConfigCache {
 
             StringBuilder ret = new StringBuilder();
             if(! StringUtils.isBlank(referenceConfig.getGroup())) {
-                ret.append(referenceConfig.getGroup()).append("/");
+                ret.append(referenceConfig.getGroup()).append("/");// 加组名group
             }
-            ret.append(iName);
+            ret.append(iName);//加interface
             if(! StringUtils.isBlank(referenceConfig.getVersion())) {
-                ret.append(":").append(referenceConfig.getVersion());
+                ret.append(":").append(referenceConfig.getVersion());// 加版本
             }
             return ret.toString();
         }
@@ -115,7 +117,7 @@ public class ReferenceConfigCache {
 
         ReferenceConfig<?> config = cache.get(key);
         if(config != null) {
-            return (T) config.get();
+            return (T) config.get();// 调用config中解析文件配置获取
         }
 
         cache.putIfAbsent(key, referenceConfig);

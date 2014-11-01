@@ -33,7 +33,7 @@ public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
 		this.zookeeperTransporter = zookeeperTransporter;
 	}
 
-	public Registry createRegistry(URL url) {
+	public Registry createRegistry(URL url) { // 注册到zk注册中心
         return new ZookeeperRegistry(url, zookeeperTransporter);
     }
 
