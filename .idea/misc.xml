@@ -3,9 +3,9 @@
   <component name="EclipseCodeFormatter">
     <option name="defaultSettings" value="true" />
     <option name="formatter" value="ECLIPSE" />
-    <option name="id" value="1401868788254" />
+    <option name="id" value="1426998228274" />
     <option name="name" value="default" />
-    <option name="pathToConfigFileJava" value="$USER_HOME$/java/Qunar.xml" />
+    <option name="pathToConfigFileJava" value="$USER_HOME$/qunar/Qunar.xml" />
     <option name="selectedJavaProfile" value="Qunar" />
   </component>
   <component name="EntryPointsManager">
@@ -14,7 +14,7 @@
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="web" url="file://$PROJECT_DIR$/dubbo-admin" />
   </component>
-  <component name="IdProvider" IDEtalkID="96DCD80B5ABC649204D6EE6C4FA26AC5" />
+  <component name="IdProvider" IDEtalkID="E054A9C358156B2FB58FD96FF64F91BC" />
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
@@ -22,24 +22,17 @@
       </list>
     </option>
   </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="false">
+    <OptionsSetting value="true" id="Add" />
+    <OptionsSetting value="true" id="Remove" />
+    <OptionsSetting value="true" id="Checkout" />
+    <OptionsSetting value="true" id="Update" />
+    <OptionsSetting value="true" id="Status" />
+    <OptionsSetting value="true" id="Edit" />
+    <ConfirmationsSetting value="0" id="Add" />
+    <ConfirmationsSetting value="0" id="Remove" />
+  </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="1.7" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/classes" />
   </component>
-  <component name="masterDetails">
-    <states>
-      <state key="ProjectJDKs.UI">
-        <settings>
-          <last-edited>1.7</last-edited>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-    </states>
-  </component>
 </project>
-
