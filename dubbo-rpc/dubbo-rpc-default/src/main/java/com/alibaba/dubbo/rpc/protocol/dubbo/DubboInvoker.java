@@ -15,9 +15,6 @@
  */
 package com.alibaba.dubbo.rpc.protocol.dubbo;
 
-import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.common.utils.AtomicPositiveInteger;
@@ -34,6 +31,9 @@ import com.alibaba.dubbo.rpc.RpcInvocation;
 import com.alibaba.dubbo.rpc.RpcResult;
 import com.alibaba.dubbo.rpc.protocol.AbstractInvoker;
 import com.alibaba.dubbo.rpc.support.RpcUtils;
+
+import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * DubboInvoker
@@ -80,6 +80,7 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
         }
         try {
             boolean isAsync = RpcUtils.isAsync(getUrl(), invocation);
+            // 没有返回需要的，调用完就结束，这样需求可以不创建future来节省资源
             boolean isOneway = RpcUtils.isOneway(getUrl(), invocation);
             int timeout = getUrl().getMethodParameter(methodName, Constants.TIMEOUT_KEY,Constants.DEFAULT_TIMEOUT);
             if (isOneway) {

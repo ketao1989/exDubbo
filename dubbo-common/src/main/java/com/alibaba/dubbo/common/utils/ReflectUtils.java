@@ -15,6 +15,11 @@
  */
 package com.alibaba.dubbo.common.utils;
 
+import javassist.CtClass;
+import javassist.CtConstructor;
+import javassist.CtMethod;
+import javassist.NotFoundException;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -35,11 +40,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javassist.CtClass;
-import javassist.CtConstructor;
-import javassist.CtMethod;
-import javassist.NotFoundException;
 
 /**
  * ReflectUtils
@@ -352,7 +352,7 @@ public final class ReflectUtils {
 			c = c.getComponentType();
 		}
 
-		if( c.isPrimitive() )
+		if( c.isPrimitive() )//原始类型
 		{
 			String t = c.getName();
 			if( "void".equals(t) ) ret.append(JVM_VOID);
@@ -365,7 +365,7 @@ public final class ReflectUtils {
 			else if( "long".equals(t) ) ret.append(JVM_LONG);
 			else if( "short".equals(t) ) ret.append(JVM_SHORT);
 		}
-		else
+		else//对象类型
 		{
 			ret.append('L');
 			ret.append(c.getName().replace('.', '/'));
@@ -627,7 +627,8 @@ public final class ReflectUtils {
 	/**
 	 * name to class.
 	 * "boolean" => boolean.class
-	 * "java.util.Map[][]" => java.util.Map[][].class
+	 * "java.util.Map[][]" => java.util.Map[][].class 有问题？
+	 * "java.util.Map[][]" => "[[Ljava.util.Map;"代码来看应该是这样子的
 	 * 
 	 * @param cl ClassLoader instance.
 	 * @param name name.
@@ -638,7 +639,7 @@ public final class ReflectUtils {
 		int c = 0, index = name.indexOf('[');
 		if( index > 0 )
 		{
-			c = ( name.length() - index ) / 2;
+			c = ( name.length() - index ) / 2;//计算多少个[]，多维数组
 			name = name.substring(0, index);
 		}
 		if( c > 0 )
@@ -676,8 +677,8 @@ public final class ReflectUtils {
 			cl = ClassHelper.getClassLoader();
 		Class<?> clazz = NAME_CLASS_CACHE.get(name);
         if(clazz == null){
-            clazz = Class.forName(name, true, cl);
-            NAME_CLASS_CACHE.put(name, clazz);
+            clazz = Class.forName(name, true, cl);//装载对应的构造类
+            NAME_CLASS_CACHE.put(name, clazz);//放入缓存中
         }
         return clazz;
 	}
